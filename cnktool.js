@@ -24,6 +24,7 @@ if (inPath) {
 
             console.log("File:              ", path.basename(inPath));
             console.log("Type:              ", chunk.type);
+            console.log("Version:           ", chunk.version);
             if (chunk.tiles) {
                 console.log("Tiles:             ", chunk.tiles.length);
             }
@@ -98,7 +99,7 @@ if (inPath) {
                 break;
             }
             console.log("Extracting geometry from " + inPath);
-            var base = path.basename(inPath, ".cnk");
+            var base = path.basename(inPath, path.extname(inPath));
             var geoPath = path.join(outPath, base + ".obj");
 
             var vertices = [],
@@ -106,7 +107,7 @@ if (inPath) {
                 faces = [];
 
             var obj = [];
-            var chunkName = path.basename(inPath, ".cnk");
+            var chunkName = path.basename(inPath, path.extname(inPath));
 
             var mtl = [
                 "newmtl " + chunkName,
@@ -131,8 +132,8 @@ if (inPath) {
             for (var i=0;i<4;i++) {
                 var vertexOffset = chunk.renderBatches[i].vertexOffset,
                     vertexCount = chunk.renderBatches[i].vertexCount;
-
                 for (var j=0;j<vertexCount;j++) {
+
                     var k = vertexOffset + j,
                         x = chunk.vertices[k].x += (i >> 1) * 64,
                         y = chunk.vertices[k].y += (i % 2) * 64;

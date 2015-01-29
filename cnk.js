@@ -33,6 +33,10 @@ function packHeightMaps(value) {
 
 }
 
+var chunkHeaderSchema = [
+    { name: "type",                 type: "fixedlengthstring", length: 4 },
+    { name: "version",              type: "uint32" }
+];
 
 var chunkSchema = [
     { name: "type",                 type: "fixedlengthstring", length: 4 },
@@ -113,28 +117,73 @@ var chunkLodSchema = [
         { name: "indexOffset",          type: "uint32" },
         { name: "indexCount",           type: "uint32" },
         { name: "vertexOffset",         type: "uint32" },
-        { name: "vertexCount",          type: "uint32" }
+        { name: "vertexCount",          type: "uint32" },
     ]},
     { name: "optimizedDraw",        type: "array", fields: [
         { name: "data",                 type: "bytes", length: 320 }
     ]},
-    // { name: "unknownShorts",        type: "array", elementType: "uint16" },
-    // { name: "unknownVectors",       type: "array", elementType: "floatvector3" },
-    // { name: "tileOccluderInfo",     type: "array", fields: [
-    //     { name: "data",                 type: "bytes", length: 64 }
-    // ]}
+    { name: "unknownShorts",        type: "array", elementType: "uint16" },
+    { name: "unknownVectors",       type: "array", elementType: "floatvector3" },
+    { name: "tileOccluderInfo",     type: "array", fields: [
+        { name: "data",                 type: "bytes", length: 64 }
+    ]}
+];
+
+var chunkLodV2Schema = [
+    { name: "type",                 type: "fixedlengthstring", length: 4 },
+    { name: "version",              type: "uint32" },
+    { name: "textures",             type: "array", fields: [
+        { name: "colorNxMap",           type: "byteswithlength" },
+        { name: "specNyMap",            type: "byteswithlength" },
+        { name: "extraData1",           type: "byteswithlength" },
+        { name: "extraData2",           type: "byteswithlength" },
+        { name: "extraData3",           type: "byteswithlength" },
+        { name: "extraData4",           type: "byteswithlength" }
+    ]},
+    { name: "vertsPerSide",         type: "uint32" },
+    { name: "heightMaps",           type: "custom", parser: parseHeightMaps, packer: packHeightMaps },
+    { name: "indices",              type: "array", elementType: "uint16" },
+    { name: "vertices",             type: "array", fields: [
+        { name: "x",                    type: "uint16" },
+        { name: "y",                    type: "uint16" },
+        { name: "heightFar",            type: "int16" },
+        { name: "heightNear",           type: "int16" },
+        { name: "color",                type: "uint32" }
+    ]},
+    { name: "renderBatches",        type: "array", fields: [
+        { name: "unknown",              type: "uint32" },
+        { name: "indexOffset",          type: "uint32" },
+        { name: "indexCount",           type: "uint32" },
+        { name: "vertexOffset",         type: "uint32" },
+        { name: "vertexCount",          type: "uint32" },
+    ]},
+    { name: "optimizedDraw",        type: "array", fields: [
+        { name: "data",                 type: "bytes", length: 320 }
+    ]},
+    { name: "unknownShorts",        type: "array", elementType: "uint16" },
+    { name: "unknownVectors",       type: "array", elementType: "floatvector3" },
+    { name: "tileOccluderInfo",     type: "array", fields: [
+        { name: "data",                 type: "bytes", length: 64 }
+    ]}
 ];
 
 function readChunk(data, offset) {
     offset = offset || 0;
 
-    var fourcc = data.readUInt32LE(offset);
-    if (fourcc == 810241603) {
+    var header = DataSchema.parse(chunkHeaderSchema, data, offset).result;
+
+    if (header.version > 2) {
+        throw "Unsupported CNK version: " + header.version;
+    }
+    if (header.type == "CNK0") {
         var chunk = DataSchema.parse(chunkSchema, data, offset);
     } else {
-        var chunk = DataSchema.parse(chunkLodSchema, data, offset);
+        if (header.version == 1) {
+            var chunk = DataSchema.parse(chunkLodSchema, data, offset);
+        } else if (header.version == 2) {
+            var chunk = DataSchema.parse(chunkLodV2Schema, data, offset);
+        }
     }
-
     return chunk.result;
 }
 
