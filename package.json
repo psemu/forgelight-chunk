@@ -1,13 +1,17 @@
 {
     "name": "forgelight-chunk",
     "description": "Parse and pack terrain chunk files for the Forgelight engine",
-    "version": "0.1.0",
+    "version": "0.1.1",
+    "author": {
+        "name" : "Jacob Seidelin", 
+        "email" : "jseidelin@nihilogic.dk", 
+        "url" : "http://github.com/jseidelin"
+    },
     "repository" : {
         "type" : "git", 
-        "url" : "https://github.com/jseidelin/forgelight-chunk.git"
+        "url" : "https://github.com/psemu/forgelight-chunk.git"
     },
     "dependencies": {
         "dataschema": "git+https://github.com/jseidelin/dataschema.git"
     }
-
 }
